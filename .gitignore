@@ -1,3 +1,5 @@
+OverlappingFigures/Debug/Overlapp.135B4D35.tlog/*
+
 # User-specific files
 *.suo
 *.user
@@ -39,6 +41,7 @@ artifacts/
 *.tmp
 *.tmp_proj
 *.log
+*.tlog
 *.vspscc
 *.vssscc
 .builds
