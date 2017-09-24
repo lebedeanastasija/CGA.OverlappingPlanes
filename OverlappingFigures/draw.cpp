@@ -6,8 +6,9 @@
 void put_pixel32(SDL_Surface *surface, int x, int y, Uint32 pixel)
 {
 	assert(NULL != surface);
-	assert(x < SCREEN_WIDTH);
-	assert(y < SCREEN_HEIGHT);
+
+	/*assert(x < SCREEN_WIDTH);
+	assert(y < SCREEN_HEIGHT);*/
 
 	Uint32 *pixels = (Uint32 *)surface->pixels;
 	pixels[(y * surface->w) + x] = pixel;
@@ -23,39 +24,15 @@ Uint32 get_pixel32(SDL_Surface *surface, int x, int y)
 	return pixels[(y * surface->w) + x];
 }
 
-void draw(SDL_Surface *s)
-{
-	// ¬аш код
-	// ...
-	for (int i = 30; i < 100; i++)
-		for (int j = 30; j < 100; j++)
-			put_pixel32(s, i, j, 0x00FF0000);
-
-	// ‘ормат цвета в HEX коде:
-	//     0x00RRGGBB
-	//  где R: от 00 до FF
-	//      G: от 00 до FF
-	//      B: от 00 до FF
-
-	for (int i = 100; i < 200; i++)
-		for (int j = 100; j < 180; j++)
-			put_pixel32(s, i, j, RGB32(0, 255, 0));
-
-	// или использу€ макрос можно получить код цвета:
-	//   RGB32(0, 255, 0) эквивалентно записи 0x0000FF00
+void drawRectangle(SDL_Surface *s, int r[4], Uint32 color) {
+	for (int i = r[0]; i < r[0] + r[2]; i++)
+		for (int j = r[1]; j < r[1] + r[3]; j++)
+			put_pixel32(s, i, j, color);
 }
 
- bool drawRectangle(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y) {
-	if (Surf_Dest == NULL || Surf_Src == NULL) {
-		return false;
-	}
-
-	SDL_Rect DestR;
-
-	DestR.x = X;
-	DestR.y = Y;
-
-	SDL_BlitSurface(Surf_Src, NULL, Surf_Dest, &DestR);
-
-	return true;
+void drawTriangle(SDL_Surface *s, int r[4], Uint32 color) {
+	for (int i = r[0], k = 0; i < r[0] + r[2]; i++, k++)
+		for (int j = r[1] + k; j < r[1] + r[3] - k; j++)
+			put_pixel32(s, i, j, color);
 }
+
