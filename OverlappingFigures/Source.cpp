@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 	
 	drawRectangle(gSurface, r, 0x000000FF);
 	drawTriangle(gSurface, tr, 0x0000FF00);
+	line(gSurface, 100, 100, 300, 300, 0x0000000F);
 
 	while (!quit) {
 		SDL_Event sdlEvent;
@@ -138,6 +139,7 @@ int main(int argc, char *argv[]) {
 		drawRectangle(gSurface, r_new, 0x000000ff);
 		drawTriangle(gSurface, tr, 0x00000000);
 		drawTriangle(gSurface, tr_new, 0x0000ff00);
+		line(gSurface, 100, 100, 300, 300, 0x0000ff00);
 		for (int i = 0; i < 4; i++) {
 			r[i] = r_new[i];
 			tr[i] = tr_new[i];
