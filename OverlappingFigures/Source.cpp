@@ -46,43 +46,44 @@ int main(int argc, char *argv[]) {
 	Sint16 max_x = 600;
 	Sint16 max_y = 600;
 
-	/*rectangle structure:
-	[0] - top left point x,
-	[1] - top left point y,
-	[2] - rectangle width,
-	[3] - rectangle height
-	*/
-	int r[4];
-	int r_new[4];
-	int tr[4];
-	int tr_new[4];
+	POINT r[4];
+	POINT r_new[4];
+	POINT tr[3];
+	POINT tr_new[3];
 
-	r[0] = max_x/2 - 50;
-	r[1] = max_y / 2 - 50;
-	r[2] = 100;
-	r[3] = 100;
+	r[0].x = 200; //[ left top, right top, right bottom, left bottom ]
+	r[0].y = 100; 
+	r[1].x = 300; 
+	r[1].y = 100;
+	r[2].x = 300;  
+	r[2].y = 200;
+	r[3].x = 200; 
+	r[3].y = 200;
 
-	tr[0] = max_x / 3 - 100;
-	tr[1] = max_y / 3 - 100;
-	tr[2] = 100;
-	tr[3] = 100;
+	tr[0].x = 150; //left bottom, middle top, right bottom
+	tr[0].y = 200;
+	tr[1].x = 200; 
+	tr[1].y = 50;
+	tr[2].x = 250; 
+	tr[2].y = 200;
 
-	for (int i = 0; i < 4; i++) {
-		r_new[i] = r[i];
+	for (int i = 0; i < 3; i++) {
 		tr_new[i] = tr[i];
 	}
+	for (int i = 0; i < 4; i++) {
+		r_new[i] = r[i];
+	}
 	
-	drawRectangle(gSurface, r, 0x000000FF);
-	drawTriangle(gSurface, tr, 0x0000FF00);
-	line(gSurface, 100, 100, 300, 300, 0x0000000F);
+	drawRectangle(gSurface, r, 0x0000ff00);
+	drawTriangle(gSurface, tr, 0x000000ff);	
 
 	while (!quit) {
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent) != 0) {
 			if (sdlEvent.type == SDL_QUIT || (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_ESCAPE)) quit = true;
-			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_DOWN)
+			/*if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_DOWN)
 			{
-				r_new[1] = r[1] + r[3] + 1 < max_y ? r[1] + 1 : r[1];
+				r_new[0].y = r[3].y > ;
 				printf("Key down\n");
 			}
 			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_UP)
@@ -96,53 +97,88 @@ int main(int argc, char *argv[]) {
 			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_RIGHT)
 			{
 				r_new[0] = r[0] + r[3] + 1 < max_x ? r[0] + 1 : r[0];
-			}
+			}*/
 			if (sdlEvent.type == SDL_MOUSEBUTTONDOWN) {
 				int x = sdlEvent.button.x;
 				int y = sdlEvent.button.y;
 		
-				if (x >= r[0] && x < r[0] + r[2] && y > r[1] && y < r[1] + r[3]) {
+				if (x >= r[0].y && x < r[1].x && y > r[0].y && y < r[2].y) {
+					printf("Get rectangle\n");
 					r_dragged = true;
 					tr_dragged = false;
 				}
-				if (x >= tr[0] && x < tr[0] + tr[2] && y > tr[1] && y < tr[1] + tr[3]) {
+				if (x >= tr[0].x && x < tr[1].x && y > tr[1].y && y < tr[0].y) {
+					printf("Get triangle\n");
 					tr_dragged = true;
 					r_dragged = false;
 				}
 			}
 			if (sdlEvent.type == SDL_MOUSEBUTTONUP) {
 				if (r_dragged) {
+					printf("put rectangle\n");
 					r_dragged = false;
 				}
 				if (tr_dragged) {
+					printf("put triangle\n");
 					tr_dragged = false;
 				}
 			}
 			if (sdlEvent.type == SDL_MOUSEMOTION) {
 				int x = sdlEvent.motion.x;
 				int y = sdlEvent.motion.y;
+				int dx = 0;
+				int dy = 0;
 
 				if (r_dragged == true) {
-					r_new[0] = x > 0 && x < max_x - r[2] ? x : r[0];
-					r_new[1] = y > 0 && y < max_y - r[3] ? y : r[1];
+					printf("move rectangle\n");
+					//move the the most top left point
+					r_new[0].x = x > 0 && x < max_x - (r[1].x - r[0].x) ? x : r[0].x;
+					r_new[0].y = y > 0 && y < max_y - (r[2].y - r[1].y) ? y : r[0].y;
+					//move ather points
+					dx = r_new[0].x - r[0].x;
+					dy = r_new[0].y - r[0].y;					
+					r_new[1].x = r[1].x + dx;
+					r_new[1].y = r[1].y + dy;
+					//minus for folowing point for rotating
+					r_new[2].x = r[2].x + dx; 
+					r_new[2].y = r[2].y + dy;
+					r_new[3].x = r[3].x + dx;
+					r_new[3].y = r[3].y + dy;
 				}
 				if (tr_dragged == true) {
-					tr_new[0] = x > 0 && x < max_x - tr[2] ? x : tr[0];
-					tr_new[1] = y > 0 && y < max_y - tr[3] ? y : tr[1];
+					printf("move triangle\n");
+					tr_new[1].x = x > 0 && x < max_x - (tr[2].x - tr[0].x) ? x : tr[1].x;
+					tr_new[1].y = y > 0 && y < max_y - (tr[2].y - tr[1].y) ? y : tr[1].y;
+
+					dx = tr_new[1].x - tr[1].x;
+					dy = tr_new[1].y - tr[1].y;
+					//minus for folowing point for rotating
+					tr_new[0].x = tr[0].x + dx;
+					tr_new[0].y = tr[0].y + dy;
+					tr_new[2].x = tr[2].x + dx;
+					tr_new[2].y = tr[2].y + dy;
 				}
 			}
 		}
 		
 		SDL_RenderClear(gRenderer);
 		SDL_LockSurface(gSurface);
-		drawRectangle(gSurface, r, 0x00000000);
-		drawRectangle(gSurface, r_new, 0x000000ff);
-		drawTriangle(gSurface, tr, 0x00000000);
-		drawTriangle(gSurface, tr_new, 0x0000ff00);
-		line(gSurface, 100, 100, 300, 300, 0x0000ff00);
+		//cleanTriangle(gSurface, tr, 0x00000000);
+		//cleanRectangle(gSurface, r, 0x00000000);	
+		if (tr_dragged) {
+			drawRectangle(gSurface, r_new, 0x0000ff00);
+			drawTriangle(gSurface, tr_new, 0x000000ff);
+		}
+		if (r_dragged && !tr_dragged) {
+			drawTriangle(gSurface, tr_new, 0x000000ff);
+			drawRectangle(gSurface, r_new, 0x0000ff00);
+		}
+
+		for (int i = 0; i < 3; i++) {
+			tr[i] = tr_new[i];
+		}
 		for (int i = 0; i < 4; i++) {
 			r[i] = r_new[i];
-			tr[i] = tr_new[i];
 		}
 		SDL_UnlockSurface(gSurface);
 		SDL_UpdateTexture(gTexture, NULL, gSurface->pixels, gSurface->pitch);
