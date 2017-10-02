@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string>
 #include <assert.h>
+#include <cmath>
+#include <math.h>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 600;

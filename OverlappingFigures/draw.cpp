@@ -61,9 +61,7 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 		int d1 = dy << 1;
 		int d2 = (dy - dx) << 1;
 
-		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) {
-			put_pixel32(surface, x1, y1, color);
-		}
+		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) put_pixel32(surface, x1, y1, color);
 		
 		for (int x = x1 + sx, y = y1, i = 1; i <= dx; i++, x += sx) {
 			if (d > 0) {
@@ -71,9 +69,7 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 			}
 			else
 				d += d1;
-			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) {
-				put_pixel32(surface, x, y, color);
-			}
+			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) put_pixel32(surface, x, y, color);
 			
 		}
 	}
@@ -81,9 +77,7 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 		int d = (dx << 1) - dy;
 		int d1 = dx << 1;
 		int d2 = (dx - dy) << 1;
-		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) {
-			put_pixel32(surface, x1, y1, color);
-		}
+		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) put_pixel32(surface, x1, y1, color);
 		
 		for (int x = x1, y = y1 + sy, i = 1; i <= dy; i++, y += sy) {
 			if (d > 0) {
@@ -91,10 +85,215 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 			}
 			else
 				d += d1;
-			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) {
-				put_pixel32(surface, x, y, color);
-			}			
+			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) put_pixel32(surface, x, y, color);			
 		}
 	}	
+}
+
+POINT getIntersection(POINT p1, POINT p2, POINT p3, POINT p4) {
+	POINT result;
+	result.x = -1;
+	result.y = -1;
+
+	float t_x = 0;
+	float t_y = 0;		
+
+	float dividor = ((p1.x - p2.x)*(p3.y - p4.y) - (p1.y - p2.y)*(p3.x - p4.x));
+	if (dividor == 0) {
+		return result;
+	}
+	t_x = ((p1.x*p2.y - p1.y*p2.x)*(p3.x - p4.x) - (p1.x - p2.x)*(p3.x*p4.y - p3.y*p4.x)) / dividor;
+	t_y = ((p1.x*p2.y - p1.y*p2.x)*(p3.y - p4.y) - (p1.y - p2.y)*(p3.x*p4.y - p3.y*p4.x)) / dividor;
+	if (t_x > fmax(p1.x, p2.x) || t_x < fmin(p1.x, p2.x) || t_y > fmax(p1.y, p2.y) || t_y < fmin(p1.y, p2.y) ||
+		t_x > fmax(p3.x, p4.x) || t_x < fmin(p3.x, p4.x) || t_y > fmax(p3.y, p4.y) || t_y < fmin(p3.y, p4.y)) {
+		return result;			
+	}
+	POINT temp;
+	temp.x = t_x;
+	temp.y = t_y;
+	if (!checkPointOnLines(temp, p1, p2, p3, p4)) {
+		return result;
+	}
+	//printf("\nintersection exists");
+	result.x = t_x;
+	result.y = t_y;
+	//printf("\nx: %f, y: %f",t_x, t_y);
+	return result;
+}
+
+POINT** getIntersectionPoints(POINT r[4], POINT tr[3]) {
+	POINT** result = new POINT*[4];
+	for (int i = 0; i < 3; ++i)
+	{
+		result[i] = new POINT[4]{ NULL, NULL, NULL, NULL};
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 4; j++) {
+			int next_i = i + 1 == 3 ? 0 : i + 1;
+			int next_j = j + 1 == 4 ? 0 : j + 1;
+			POINT candidate = getIntersection(tr[i], tr[next_i], r[j], r[next_j]);
+			if (!pointInMatrix(result, candidate)) {
+				result[i][j] = candidate;
+				//printf("\n candidate) x: %d, y: %d", candidate.x, candidate.y);
+			}
+		}
+	}
+	return result;
+}
+
+float distance(POINT p1, POINT p2) {
+	return pow(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2), 0.5);
+}
+
+bool checkPointOnLines(POINT p, POINT p1, POINT p2, POINT p3, POINT p4) {
+	float nu_1 = distance(p, p2) / distance(p1, p2);
+	float nu_2 = distance(p, p4) / distance(p3, p4);
+	if (nu_1 <= 1 && nu_1 >= 0 && nu_2 <= 1 && nu_2 >= 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool pointInMatrix(POINT **m, POINT p) {
+	bool result = false;
+	if (p.x == -1 && p.y == -1) return false;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (m[i][j].x == p.x && m[i][j].y == p.y) {
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+POINT **getUnvisibleLines(POINT ** interseptionMatrix, POINT r[4], POINT tr[3], int r_index, int tr_index) {
+	POINT** result = new POINT*[2];
+	int temp_line_index = 0;
+	if (r_index == 1) {
+		for (int i = 0; i < 3; i++) {
+			int point_number = 0;
+			int indexes[2];
+			for (int j = 0; j < 4; j++) {
+				if (pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, interseptionMatrix[i][j])) {
+					point_number++;
+					indexes[point_number - 1] = j;
+				}
+			}
+			if (point_number == 1) {
+				result[temp_line_index] = new POINT[2]{ NULL, NULL };
+				result[temp_line_index][0] = interseptionMatrix[i][indexes[0]];
+				switch (i) {
+				case 0:
+					result[temp_line_index][1] = getPointInRectangle(r, tr[0], tr[1]);
+					break;
+				case 1:
+					result[temp_line_index][1] = getPointInRectangle(r, tr[1], tr[2]);
+					break;
+				case 2:
+					result[temp_line_index][1] = getPointInRectangle(r, tr[2], tr[0]);
+					break;
+				default:
+					break;
+				}
+				temp_line_index++;
+			}
+			if (point_number == 2) {
+				result[temp_line_index] = new POINT[2]{ NULL, NULL };
+				result[temp_line_index][0] = interseptionMatrix[i][indexes[0]];
+				result[temp_line_index][1] = interseptionMatrix[i][indexes[1]];
+				temp_line_index++;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < 4; i++) {
+			int point_number = 0;
+			int indexes[2];
+			for (int j = 0; j < 3; j++) {
+				if (pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, interseptionMatrix[j][i])) {
+					point_number++;
+					indexes[point_number - 1] = j;
+				}
+			}
+			if (point_number == 1) {
+				result[temp_line_index] = new POINT[2]{ NULL, NULL };
+				result[temp_line_index][0] = interseptionMatrix[indexes[0]][i];
+				switch (i) {
+				case 0:
+					result[temp_line_index][1] = getPointInTriangle(tr, r[0], r[1]);
+					break;
+				case 1:
+					result[temp_line_index][1] = getPointInTriangle(tr, r[1], r[2]);
+					break;
+				case 2:
+					result[temp_line_index][1] = getPointInTriangle(tr, r[2], r[3]);
+					break;
+				case 3:
+					result[temp_line_index][1] = getPointInTriangle(tr, r[3], r[0]);
+					break;
+				default:
+					break;
+				}
+				temp_line_index++;
+			}
+			if (point_number == 2) {
+				result[temp_line_index] = new POINT[2]{ NULL, NULL };
+				result[temp_line_index][0] = interseptionMatrix[indexes[0]][i];
+				result[temp_line_index][1] = interseptionMatrix[indexes[1]][i];
+				temp_line_index++;
+			}
+		}
+	}
+	result[temp_line_index] = NULL;
+	return result;
+}
+
+bool pointInWindow(int width, int height, POINT p) {
+	if (p.x > width || p.x < 0 || p.y < 0 || p.y > height) return false;
+	else return true;
+}
+
+POINT getPointInRectangle(POINT r[4], POINT p1, POINT p2) {
+	if(p1.x <= fmax(r[1].x, r[2].x) && p1.x >= fmin(r[0].x, r[3].x) &&
+		p1.y <= fmax(r[2].y, r[3].y) && p1.y >= fmin(r[0].y, r[1].y)) {
+		return p1;
+	}
+	if (p2.x <= fmax(r[1].x, r[2].x) && p2.x >= fmin(r[0].x, r[3].x) &&
+		p2.y <= fmax(r[2].y, r[3].y) && p2.y >= fmin(r[0].y, r[1].y)) {
+		return p2;
+	}
+	return p1;
+}
+
+bool pointOutOfWindow(POINT r[4], POINT p){
+	if (p.x >= fmax(r[1].x, r[2].x) && p.x <= fmin(r[0].x, r[3].x) &&
+		p.y >= fmax(r[2].y, r[3].y) && p.y <= fmin(r[0].y, r[1].y)) {
+		return true;
+	}
+	return false;
+}
+
+POINT getPointInTriangle(POINT tr[3], POINT p1, POINT p2) {
+	if (p1.x <= fmax(tr[1].x, tr[2].x) && p1.x >= fmin(tr[0].x, tr[1].x) &&
+		p1.y <= fmax(tr[0].y, tr[2].y) && p1.y >= fmin(tr[1].y, tr[2].y)) {
+		return p1;
+	}
+	if (p2.x <= fmax(tr[1].x, tr[2].x) && p2.x >= fmin(tr[0].x, tr[1].x) &&
+		p2.y <= fmax(tr[0].y, tr[2].y) && p2.y >= fmin(tr[1].y, tr[2].y)) {
+		return p2;
+	}
+	return p1;
+}
+
+POINT GetPoint(POINT p, double angle)
+{
+	POINT newPoint;
+	newPoint.x = rint(p.x * cos(angle) - p.y * sin(angle));
+	newPoint.y = rint(p.x * sin(angle) + p.y * cos(angle));
+	return newPoint;
 }
 
