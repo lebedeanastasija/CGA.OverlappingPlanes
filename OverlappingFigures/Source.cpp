@@ -87,9 +87,9 @@ int main(int argc, char *argv[]) {
 		r_new[i] = r[i];
 	}
 	
-	drawRectangle(gSurface, r, 0x0000ff00);
-	drawTriangle(gSurface, tr, 0x000000ff);
-	drawRectangle(gSurface, w, 0x00ff0000);
+	drawRectangle(gSurface, w, r, 0x0000ff00);
+	drawTriangle(gSurface, w, tr, 0x000000ff);
+	drawRectangle(gSurface, w, w, 0x00ff0000);
 
 	POINT **points = getIntersectionPoints(r, tr);
 	POINT **lines = getUnvisibleLines(points, r, tr, r_index, tr_index);
@@ -102,10 +102,10 @@ int main(int argc, char *argv[]) {
 		if (lines[i] == NULL || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][0]) || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][1])) {
 			last_founded = true;
 		} else {
-			line(gSurface, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
+			line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
 		}
 	}
-	double angle = M_PI / 18;
+	double angle = M_PI / 180;
 	while (!quit) {
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent) != 0) {
@@ -122,29 +122,29 @@ int main(int argc, char *argv[]) {
 			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_LEFT)
 			{
 				if (r_index == 1) {
-					r_new[0] = GetPoint(r[0], angle);
-					r_new[1] = GetPoint(r[1], angle);
-					r_new[2] = GetPoint(r[2], angle);
-					r_new[3] = GetPoint(r[3], angle);
+					r_new[0] = GetPoint(r[0], angle, GetRectangleGeometricCenter(r_new));
+					r_new[1] = GetPoint(r[1], angle, GetRectangleGeometricCenter(r_new));
+					r_new[2] = GetPoint(r[2], angle, GetRectangleGeometricCenter(r_new));
+					r_new[3] = GetPoint(r[3], angle, GetRectangleGeometricCenter(r_new));
 				}
 				if (tr_index == 1) {
-					tr_new[0] = GetPoint(tr[0], angle);
-					tr_new[1] = GetPoint(tr[1], angle);
-					tr_new[2] = GetPoint(tr[2], angle);
+					tr_new[0] = GetPoint(tr[0], angle, GetTriangleGeometricCenter(tr_new));
+					tr_new[1] = GetPoint(tr[1], angle, GetTriangleGeometricCenter(tr_new));
+					tr_new[2] = GetPoint(tr[2], angle, GetTriangleGeometricCenter(tr_new));
 				}
 			}
 			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_RIGHT)
 			{
 				if (r_index == 1) {
-					r_new[0] = GetPoint(r[0], -1 * angle);
-					r_new[1] = GetPoint(r[1], -1 * angle);
-					r_new[2] = GetPoint(r[2], -1 * angle);
-					r_new[3] = GetPoint(r[3], -1 * angle);
+					r_new[0] = GetPoint(r[0], -1 * angle, GetRectangleGeometricCenter(r_new));
+					r_new[1] = GetPoint(r[1], -1 * angle, GetRectangleGeometricCenter(r_new));
+					r_new[2] = GetPoint(r[2], -1 * angle, GetRectangleGeometricCenter(r_new));
+					r_new[3] = GetPoint(r[3], -1 * angle, GetRectangleGeometricCenter(r_new));
 				}
 				if (tr_index == 1) {
-					tr_new[0] = GetPoint(tr[0], -1 * angle);
-					tr_new[1] = GetPoint(tr[1], -1 * angle);
-					tr_new[2] = GetPoint(tr[2], -1 * angle);
+					tr_new[0] = GetPoint(tr[0], -1 * angle, GetTriangleGeometricCenter(tr_new));
+					tr_new[1] = GetPoint(tr[1], -1 * angle, GetTriangleGeometricCenter(tr_new));
+					tr_new[2] = GetPoint(tr[2], -1 * angle, GetTriangleGeometricCenter(tr_new));
 				}
 			}
 
@@ -230,40 +230,43 @@ int main(int argc, char *argv[]) {
 		cleanTriangle(gSurface, tr, 0x00000000);
 		cleanRectangle(gSurface, r, 0x00000000);
 
+		Uint32 tr_color = 0x000000ff;
+		Uint32 r_color = 0x0000ff00;
+
 		if (!tr_dragged && !r_dragged) {
 			if (r_index == 1) {
-				drawTriangle(gSurface, tr_new, 0x000000ff);
-				drawRectangle(gSurface, r_new, 0x0000ff00);
+				drawTriangle(gSurface, w, tr_new, tr_color);
+				drawRectangle(gSurface, w, r_new, r_color);
 			}
 			else if (tr_index == 1) {
-				drawRectangle(gSurface, r_new, 0x0000ff00);
-				drawTriangle(gSurface, tr_new, 0x000000ff);
+				drawRectangle(gSurface, w, r_new, r_color);
+				drawTriangle(gSurface, w, tr_new, tr_color);
 			}
 		}
 		else {
 			if (tr_dragged) {
-				drawRectangle(gSurface, r_new, 0x0000ff00);
-				drawTriangle(gSurface, tr_new, 0x000000ff);
+				drawRectangle(gSurface, w, r_new, r_color);
+				drawTriangle(gSurface, w, tr_new, tr_color);
 				int r_index = 0;
 				int tr_index = 1;
 			}
 			if (r_dragged) {
-				drawTriangle(gSurface, tr_new, 0x000000ff);
-				drawRectangle(gSurface, r_new, 0x0000ff00);
+				drawTriangle(gSurface, w, tr_new, tr_color);
+				drawRectangle(gSurface, w, r_new, r_color);
 				int tr_index = 0;
 				int r_index = 1;
 			}
 		}	
 		
 
-		for (int i = 0; i < 3 && !last_founded; i++) {
+		/*for (int i = 0; i < 3 && !last_founded; i++) {
 			if (lines[i] == NULL || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][0]) || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][1])) {
 				last_founded = true;
 			}
 			else {
 				line(gSurface, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00000000);
 			}
-		}
+		}*/
 
 		points = getIntersectionPoints(r_new, tr_new);
 		lines = getUnvisibleLines(points, r_new, tr_new, r_index, tr_index);
@@ -274,11 +277,11 @@ int main(int argc, char *argv[]) {
 				last_founded = true;
 			}
 			else {
-				line(gSurface, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
+				line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
 			}
 		}
 
-		drawRectangle(gSurface, w, 0x00ff0000);
+		drawRectangle(gSurface, w, w, 0x00ff0000);
 
 		for (int i = 0; i < 3; i++) {
 			tr[i] = tr_new[i];

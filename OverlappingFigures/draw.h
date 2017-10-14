@@ -3,15 +3,15 @@
 
 #include "stdafx.h"
 
-void drawTriangle(SDL_Surface *s, POINT tr[3], Uint32 color);
+void drawTriangle(SDL_Surface *s, POINT w[4], POINT tr[3], Uint32 color);
 
-void drawRectangle(SDL_Surface *s, POINT r[4], Uint32 color);
+void drawRectangle(SDL_Surface *s, POINT w[4], POINT r[4], Uint32 color);
 
 void cleanTriangle(SDL_Surface *s, POINT tr[3], Uint32 color);
 
 void cleanRectangle(SDL_Surface *s, POINT r[4], Uint32 color);
 
-void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color);
+void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color);
 
 POINT getIntersection(POINT p1, POINT p2, POINT p3, POINT p4);
 
@@ -31,6 +31,10 @@ bool pointOutOfWindow(POINT w[4], POINT p);
 
 POINT getPointInTriangle(POINT tr[3], POINT p1, POINT p2);
 
-POINT GetPoint(POINT p, double angle);
+POINT GetPoint(POINT p, double angle, POINT center);
+
+POINT GetTriangleGeometricCenter(POINT tr[3]);
+
+POINT GetRectangleGeometricCenter(POINT r[4]);
 
 #endif

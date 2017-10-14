@@ -24,34 +24,53 @@ Uint32 get_pixel32(SDL_Surface *surface, int x, int y)
 	return pixels[(y * surface->w) + x];
 }
 
-void drawRectangle(SDL_Surface *s, POINT r[4], Uint32 color) {
-	line(s, r[0].x, r[0].y, r[1].x, r[1].y, 0x0000ff00);
-	line(s, r[1].x, r[1].y, r[2].x, r[2].y, 0x0000ff00);
-	line(s, r[2].x, r[2].y, r[3].x, r[3].y, 0x0000ff00);
-	line(s, r[3].x, r[3].y, r[0].x, r[0].y, 0x0000ff00);
+void drawRectangle(SDL_Surface *s, POINT w[4], POINT r[4], Uint32 color) {
+	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x0000ff00);
+	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x0000ff00);
+	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x0000ff00);
+	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x0000ff00);
 }
 
-void drawTriangle(SDL_Surface *s, POINT tr[3], Uint32 color) {
-	line(s, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x000000ff);
-	line(s, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x000000ff);
-	line(s, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x000000ff);
+void drawTriangle(SDL_Surface *s, POINT w[4], POINT tr[3], Uint32 color) {
+	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x000000ff);
+	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x000000ff);
+	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x000000ff);
 }
 
 void cleanRectangle(SDL_Surface *s, POINT r[4], Uint32 color) {
-	line(s, r[0].x, r[0].y, r[1].x, r[1].y, 0x00000000);
-	line(s, r[1].x, r[1].y, r[2].x, r[2].y, 0x00000000);
-	line(s, r[2].x, r[2].y, r[3].x, r[3].y, 0x00000000);
-	line(s, r[3].x, r[3].y, r[0].x, r[0].y, 0x00000000);
+	POINT w[4];
+	w[0].x = 0; //[ left top, right top, right bottom, left bottom ]
+	w[0].y = 0;
+	w[1].x = 600;
+	w[1].y = 0;
+	w[2].x = 600;
+	w[2].y = 600;
+	w[3].x = 0;
+	w[3].y = 600;
+	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x00000000);
+	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x00000000);
+	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x00000000);
+	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x00000000);
 }
 
 void cleanTriangle(SDL_Surface *s, POINT tr[3], Uint32 color) {
-	line(s, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x00000000);
-	line(s, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x00000000);
-	line(s, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x00000000);
+	POINT w[4];
+	w[0].x = 0; //[ left top, right top, right bottom, left bottom ]
+	w[0].y = 0;
+	w[1].x = 600;
+	w[1].y = 0;
+	w[2].x = 600;
+	w[2].y = 600;
+	w[3].x = 0;
+	w[3].y = 600;
+	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x00000000);
+	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x00000000);
+	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x00000000);
 }
 
-void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
+void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color)
 {
+	POINT temp;
 	int dx = abs(x2 - x1);
 	int dy = abs(y2 - y1);
 	int sx = x2 >= x1 ? 1 : -1;
@@ -61,7 +80,18 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 		int d1 = dy << 1;
 		int d2 = (dy - dx) << 1;
 
-		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) put_pixel32(surface, x1, y1, color);
+		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) {
+			
+			temp.x = x1;
+			temp.y = y1;
+			if (pointOutOfWindow(w, temp)) {
+				put_pixel32(surface, x1, y1, 0x00ff00ff);
+			}
+			else {
+				put_pixel32(surface, x1, y1, color);
+			}
+			
+		}
 		
 		for (int x = x1 + sx, y = y1, i = 1; i <= dx; i++, x += sx) {
 			if (d > 0) {
@@ -69,7 +99,16 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 			}
 			else
 				d += d1;
-			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) put_pixel32(surface, x, y, color);
+			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) {
+				temp.x = x;
+				temp.y = y;
+				if (pointOutOfWindow(w, temp)) {
+					put_pixel32(surface, x, y, 0x00ff00ff);
+				}
+				else {
+					put_pixel32(surface, x, y, color);
+				}
+			}
 			
 		}
 	}
@@ -77,7 +116,16 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 		int d = (dx << 1) - dy;
 		int d1 = dx << 1;
 		int d2 = (dx - dy) << 1;
-		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) put_pixel32(surface, x1, y1, color);
+		if (x1 > -1 && y1 > -1 && x1 <= SCREEN_WIDTH && y1 <= SCREEN_HEIGHT) {
+			temp.x = x1;
+			temp.y = y1;
+			if (pointOutOfWindow(w, temp)) {
+				put_pixel32(surface, x1, y1, 0x00ff00ff);
+			}
+			else {
+				put_pixel32(surface, x1, y1, color);
+			}
+		}
 		
 		for (int x = x1, y = y1 + sy, i = 1; i <= dy; i++, y += sy) {
 			if (d > 0) {
@@ -85,7 +133,16 @@ void line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint32 color)
 			}
 			else
 				d += d1;
-			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) put_pixel32(surface, x, y, color);			
+			if (x > -1 && y > -1 && x <= SCREEN_WIDTH && y <= SCREEN_HEIGHT) {
+				temp.x = x;
+				temp.y = y;
+				if (pointOutOfWindow(w, temp)) {
+					put_pixel32(surface, x, y, 0x00ff00ff);
+				}
+				else {
+					put_pixel32(surface, x, y, color);
+				}
+			}
 		}
 	}	
 }
@@ -270,8 +327,8 @@ POINT getPointInRectangle(POINT r[4], POINT p1, POINT p2) {
 }
 
 bool pointOutOfWindow(POINT r[4], POINT p){
-	if (p.x >= fmax(r[1].x, r[2].x) && p.x <= fmin(r[0].x, r[3].x) &&
-		p.y >= fmax(r[2].y, r[3].y) && p.y <= fmin(r[0].y, r[1].y)) {
+	if (p.x > max(r[1].x, r[2].x) || p.x < min(r[0].x, r[3].x) ||
+		p.y > max(r[2].y, r[3].y) || p.y < min(r[0].y, r[1].y)) {
 		return true;
 	}
 	return false;
@@ -289,11 +346,105 @@ POINT getPointInTriangle(POINT tr[3], POINT p1, POINT p2) {
 	return p1;
 }
 
-POINT GetPoint(POINT p, double angle)
+POINT GetPoint(POINT p, double angle, POINT center)
 {
 	POINT newPoint;
-	newPoint.x = rint(p.x * cos(angle) - p.y * sin(angle));
-	newPoint.y = rint(p.x * sin(angle) + p.y * cos(angle));
+	int dx = center.x;
+	int dy = center.y;
+	newPoint.x = rint((p.x - dx)  * cos(angle) - (p.y - dy) * sin(angle)) + dx;
+	newPoint.y = rint((p.x - dx) * sin(angle) + (p.y - dy) * cos(angle)) + dy;
 	return newPoint;
+}
+
+POINT GetTriangleGeometricCenter(POINT tr[3]) {
+	/*POINT result;
+	POINT mPoint1;
+	POINT mPoint2;
+	mPoint1.x = rint((max(tr[0].x, tr[1].x) - min(tr[0].x, tr[1].x)) / 2);
+	mPoint1.y = rint((max(tr[0].y, tr[1].y) - min(tr[0].y, tr[1].y)) / 2);
+	mPoint2.x = rint((max(tr[2].x, tr[1].x) - min(tr[2].x, tr[1].x)) / 2);
+	mPoint2.y = rint((max(tr[2].y, tr[1].y) - min(tr[2].y, tr[1].y)) / 2);
+
+	result = getIntersection(tr[0], mPoint2, tr[2], mPoint1);
+	return result;*/
+
+	POINT result;
+
+	int minY = min(tr[0].y, tr[1].y);
+	int maxY = max(tr[0].y, tr[1].y);
+	int minX = min(tr[0].x, tr[1].x);
+	int maxX = max(tr[0].x, tr[1].x);
+
+
+	minY = tr[2].y < minY ? tr[2].y : minY;
+	maxY = tr[2].y > maxY ? tr[2].y : maxY;
+	minX = tr[2].x < minX ? tr[2].x : minX;
+	maxX = tr[2].x > maxX ? tr[2].x : maxX;
+
+	POINT p1;
+	POINT p2;
+	POINT p3;
+	POINT p4;
+
+	p1.x = minX;
+	p1.y = minY;
+	p2.x = maxX;
+	p2.y = maxY;
+	p3.x = maxX;
+	p3.y = minY;
+	p4.x = minX;
+	p4.y = maxY;
+
+	result = getIntersection(p1, p2, p3, p4);
+	return result;
+}
+
+POINT GetRectangleGeometricCenter(POINT r[4]) {
+	POINT result;
+
+	int minY = min(r[0].y, r[1].y);
+	int maxY = max(r[0].y, r[1].y);	
+	int minX = min(r[0].x, r[1].x);	
+	int maxX = max(r[0].x, r[1].x);
+	int minYx;
+	int maxYx;
+	int minXy;
+	int maxXy;
+	
+	minY = min(r[2].y, r[3].y) < minY ? min(r[2].y, r[3].y) : minY;
+	maxY = max(r[2].y, r[3].y) > maxY ? max(r[2].y, r[3].y) : maxY;
+	minX = min(r[2].x, r[3].x) < minX ? min(r[2].x, r[3].x) : minX;
+	maxX = max(r[2].x, r[3].x) > maxX ? max(r[2].x, r[3].x) : maxX;
+	for (int i = 0; i < 4; i++) {
+		if (r[i].y == minY) {
+			minYx = r[i].x;
+		}
+		if (r[i].y == maxY) {
+			maxYx = r[i].x;
+		}
+		if (r[i].x == minX) {
+			minXy = r[i].y;
+		}
+		if (r[i].x == maxX) {
+			maxXy = r[i].y;
+		}
+	}
+
+	POINT p1;
+	POINT p2;
+	POINT p3;
+	POINT p4;
+
+	p1.x = minYx;
+	p1.y = minY;
+	p2.x = maxYx;
+	p2.y = maxY;
+	p3.x = minX;
+	p3.y = minXy;
+	p4.x = maxX;
+	p4.y = maxXy;
+
+	result = getIntersection(p1, p2, p3, p4);
+	return result;
 }
 
