@@ -11,7 +11,7 @@ void cleanTriangle(SDL_Surface *s, POINT tr[3], Uint32 color);
 
 void cleanRectangle(SDL_Surface *s, POINT r[4], Uint32 color);
 
-void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color);
+void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color, bool windowCheck);
 
 POINT getIntersection(POINT p1, POINT p2, POINT p3, POINT p4);
 

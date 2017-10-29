@@ -5,10 +5,9 @@
 
 void put_pixel32(SDL_Surface *surface, int x, int y, Uint32 pixel)
 {
-
 	assert(NULL != surface);
-	assert(x < SCREEN_WIDTH);
-	assert(y < SCREEN_HEIGHT);
+	assert(x <= SCREEN_WIDTH);
+	assert(y <= SCREEN_HEIGHT);
 
 	Uint32 *pixels = (Uint32 *)surface->pixels;
 	pixels[(y * surface->w) + x] = pixel;
@@ -25,16 +24,16 @@ Uint32 get_pixel32(SDL_Surface *surface, int x, int y)
 }
 
 void drawRectangle(SDL_Surface *s, POINT w[4], POINT r[4], Uint32 color) {
-	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x0000ff00);
-	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x0000ff00);
-	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x0000ff00);
-	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x0000ff00);
+	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x0000ff00, true);
+	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x0000ff00, true);
+	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x0000ff00, true);
+	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x0000ff00, true);
 }
 
 void drawTriangle(SDL_Surface *s, POINT w[4], POINT tr[3], Uint32 color) {
-	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x000000ff);
-	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x000000ff);
-	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x000000ff);
+	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x000000ff, true);
+	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x000000ff, true);
+	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x000000ff, true);
 }
 
 void cleanRectangle(SDL_Surface *s, POINT r[4], Uint32 color) {
@@ -47,10 +46,10 @@ void cleanRectangle(SDL_Surface *s, POINT r[4], Uint32 color) {
 	w[2].y = 600;
 	w[3].x = 0;
 	w[3].y = 600;
-	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x00000000);
-	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x00000000);
-	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x00000000);
-	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x00000000);
+	line(s, w, r[0].x, r[0].y, r[1].x, r[1].y, 0x00000000, false);
+	line(s, w, r[1].x, r[1].y, r[2].x, r[2].y, 0x00000000, false);
+	line(s, w, r[2].x, r[2].y, r[3].x, r[3].y, 0x00000000, false);
+	line(s, w, r[3].x, r[3].y, r[0].x, r[0].y, 0x00000000, false);
 }
 
 void cleanTriangle(SDL_Surface *s, POINT tr[3], Uint32 color) {
@@ -63,12 +62,12 @@ void cleanTriangle(SDL_Surface *s, POINT tr[3], Uint32 color) {
 	w[2].y = 600;
 	w[3].x = 0;
 	w[3].y = 600;
-	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x00000000);
-	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x00000000);
-	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x00000000);
+	line(s, w, tr[0].x, tr[0].y, tr[1].x, tr[1].y, 0x00000000, false);
+	line(s, w, tr[1].x, tr[1].y, tr[2].x, tr[2].y, 0x00000000, false);
+	line(s, w, tr[2].x, tr[2].y, tr[0].x, tr[0].y, 0x00000000, false);
 }
 
-void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color)
+void line(SDL_Surface* surface, POINT w[4], int x1, int y1, int x2, int y2, Uint32 color, bool windowCheck)
 {
 	POINT temp;
 	int dx = abs(x2 - x1);
@@ -192,7 +191,6 @@ POINT** getIntersectionPoints(POINT r[4], POINT tr[3]) {
 			POINT candidate = getIntersection(tr[i], tr[next_i], r[j], r[next_j]);
 			if (!pointInMatrix(result, candidate)) {
 				result[i][j] = candidate;
-				//printf("\n candidate) x: %d, y: %d", candidate.x, candidate.y);
 			}
 		}
 	}

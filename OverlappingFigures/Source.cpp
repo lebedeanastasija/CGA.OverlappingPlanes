@@ -33,27 +33,26 @@ void close() {
 }
 
 int main(int argc, char *argv[]) {
-	bool r_dragged = false; 
-	bool tr_dragged = false;
 	if (!init()) return 1;
-
 	gSurface = SDL_CreateRGBSurface(0, 600, 600, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000);
 	gTexture = SDL_CreateTextureFromSurface(gRenderer, gSurface);
 	if (gTexture == NULL) return 1;
 
 	bool quit = false;
-
 	Sint16 max_x = 600;
 	Sint16 max_y = 600;
-
 	POINT r[4];
 	POINT r_new[4];
 	POINT tr[3];
 	POINT tr_new[3];
 	POINT w[4];
-
+	bool r_dragged = false;
+	bool tr_dragged = false;
 	int r_index = 0;
 	int tr_index = 1;
+	POINT **points;
+	POINT **lines;
+	double angle = M_PI / 180;
 
 	r[0].x = 210; //[ left top, right top, right bottom, left bottom ]
 	r[0].y = 60; 
@@ -91,34 +90,22 @@ int main(int argc, char *argv[]) {
 	drawTriangle(gSurface, w, tr, 0x000000ff);
 	drawRectangle(gSurface, w, w, 0x00ff0000);
 
-	POINT **points = getIntersectionPoints(r, tr);
-	POINT **lines = getUnvisibleLines(points, r, tr, r_index, tr_index);
-
-	POINT **points1 = getIntersectionPoints(w, tr);
-	POINT **lines1 = getUnvisibleLines(points, r, tr, r_index, tr_index);
+	points = getIntersectionPoints(r, tr);
+	lines = getUnvisibleLines(points, r, tr, r_index, tr_index);
 
 	bool last_founded = false;
 	for (int i = 0; i < 3 && !last_founded; i++) {
 		if (lines[i] == NULL || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][0]) || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][1])) {
 			last_founded = true;
 		} else {
-			line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
+			line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000, false);
 		}
 	}
-	double angle = M_PI / 180;
+	
 	while (!quit) {
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent) != 0) {
 			if (sdlEvent.type == SDL_QUIT || (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_ESCAPE)) quit = true;
-			/*if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_DOWN)
-			{
-				r_new[0].y = r[3].y > ;
-				printf("Key down\n");
-			}
-			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_UP)
-			{
-				r_new[1] = r[1] > 0 ? r[1] - 1 : r[1];
-			}*/
 			if (sdlEvent.type == SDL_KEYDOWN && sdlEvent.key.keysym.sym == SDLK_LEFT)
 			{
 				if (r_index == 1) {
@@ -198,8 +185,8 @@ int main(int argc, char *argv[]) {
 
 				if (r_dragged == true) {
 		
-					r_new[0].x = x > 0 && x < max_x - (r[1].x - r[0].x) ? x : r[0].x;
-					r_new[0].y = y > 0 && y < max_y - (r[2].y - r[1].y) ? y : r[0].y;
+					r_new[0].x = x > 0 && x < max_x ? x : r[0].x;
+					r_new[0].y = y > 0 && y < max_y ? y : r[0].y;
 				
 					dx = r_new[0].x - r[0].x;
 					dy = r_new[0].y - r[0].y;					
@@ -211,8 +198,8 @@ int main(int argc, char *argv[]) {
 					r_new[3].y = r[3].y + dy;
 				}
 				if (tr_dragged == true) {
-					tr_new[1].x = x > 0 && x < max_x - (tr[2].x - tr[0].x) ? x : tr[1].x;
-					tr_new[1].y = y > 0 && y < max_y - (tr[2].y - tr[1].y) ? y : tr[1].y;
+					tr_new[1].x = x > 0 && x < max_x ? x : tr[1].x;
+					tr_new[1].y = y > 0 && y < max_y ? y : tr[1].y;
 
 					dx = tr_new[1].x - tr[1].x;
 					dy = tr_new[1].y - tr[1].y;
@@ -257,16 +244,6 @@ int main(int argc, char *argv[]) {
 				int r_index = 1;
 			}
 		}	
-		
-
-		/*for (int i = 0; i < 3 && !last_founded; i++) {
-			if (lines[i] == NULL || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][0]) || !pointInWindow(SCREEN_WIDTH, SCREEN_HEIGHT, lines[i][1])) {
-				last_founded = true;
-			}
-			else {
-				line(gSurface, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00000000);
-			}
-		}*/
 
 		points = getIntersectionPoints(r_new, tr_new);
 		lines = getUnvisibleLines(points, r_new, tr_new, r_index, tr_index);
@@ -277,7 +254,7 @@ int main(int argc, char *argv[]) {
 				last_founded = true;
 			}
 			else {
-				line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000);
+				line(gSurface, w, lines[i][0].x, lines[i][0].y, lines[i][1].x, lines[i][1].y, 0x00ff0000, false);
 			}
 		}
 
